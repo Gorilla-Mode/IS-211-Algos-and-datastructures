@@ -1,11 +1,30 @@
-#include <complex.h>
 #include <stdio.h>
+#include <stdint-gcc.h>
+#include <string.h>
 
-int linSearch(int val, const int arr[], int len)
+typedef struct
 {
-    for (int i = 0; i < len; ++i)
+    int32_t length;
+    int32_t capacity;
+    int32_t *items;
+}Int32array;
+
+int32_t Int32arrayGet (Int32array array, int32_t i)
+{
+    if (array.capacity < i)
     {
-        if (arr[i] == val)
+        return 0; 
+    }
+    
+    return array.items[i];
+}
+
+
+int32_t linSearch(int32_t val, const Int32array arr)
+{
+    for (int32_t i = 0; i < arr.length; ++i)
+    {
+        if (arr.items[i] == val)
         {
            return i; 
         }
@@ -13,12 +32,13 @@ int linSearch(int val, const int arr[], int len)
     return -1;
 }
 
-int countOccurrence(int val, const int arr[], int len)
+int countOccurrence(int32_t val, const Int32array arr)
 {
-    int count = 0;
-    for (int i = 0; i < len; ++i)
+    
+    int32_t count = 0;
+    for (int32_t i = 0; i < arr.length; ++i)
     {
-        if (arr[i] == val)
+        if (arr.items[i] == val)
         {
             count++;
         }
@@ -29,20 +49,34 @@ int countOccurrence(int val, const int arr[], int len)
 int main(void)
 {
     //fr easier in c than python (skull emoji, skull emoji)
-    int arr[] = {1,3,2,90,9,4,5,6,7,8,9};
+    int32_t stack_buf[16];
+    Int32array arr = {
+        .capacity = sizeof(stack_buf) / sizeof(stack_buf[0]),
+        .items =  stack_buf
+    };
 
-    for (int i = 0; i < (sizeof(arr)/sizeof(int)); ++i)
+   int32_t seedVals[] = {1,3,5,9,9,2,3,43,1,3};
+
+    memcpy(arr.items, seedVals, sizeof(seedVals));
+    arr.length = sizeof(seedVals) / sizeof(seedVals[0]);
+    
+
+    for (int32_t i = 0; i < arr.length; ++i)
     {
-        printf("%d\n", arr[i]);
+        printf("%d\n", arr.items[i]);
     }
 
-    int searchVal = 9;
-    int index = linSearch(searchVal, arr, (sizeof(arr)/sizeof(arr[0])));
+    int32_t searchVal = 9;
+    int32_t index = linSearch(searchVal, arr);
 
+    printf("\narray contains: %d values\n", arr.length);
     printf("\n%d is stored at: %d\n",searchVal, index);
-
-    int occurences = countOccurrence(searchVal, arr, (sizeof(arr)/sizeof(arr[0]))); 
-
+    
+    int32_t occurences = countOccurrence(searchVal, arr); 
+    
     printf("\nOccurences of %d is: %d\n",searchVal, occurences);
+    
+
+    printf("\n%d", Int32arrayGet(arr, 10));
     return 0;
 }
