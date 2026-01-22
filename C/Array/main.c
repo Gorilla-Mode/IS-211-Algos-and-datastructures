@@ -2,12 +2,51 @@
 #include <stdint-gcc.h>
 #include <string.h>
 
-typedef struct
-{
+typedef struct Int32array Int32array;
+
+struct Int32array {
     int32_t length;
     int32_t capacity;
     int32_t *items;
-}Int32array;
+    void (*push)(Int32array *self, int32_t value);
+    void (*insert)(Int32array *self, int32_t value, int32_t index);
+};
+
+static void Int32arrayPush(Int32array *self, int32_t value)
+{
+    if (self->length >= self->capacity)
+    {
+        return;
+    }
+    self->items[self->length++] = value;
+}
+
+static void Int32arrayInsert(Int32array *self, int32_t value, int32_t index)
+{
+    if (self->length >= self->capacity)
+    {
+        return;
+    }
+    if (self->capacity < index)
+    {
+        return;
+    }
+    if (self->items[index] == 0)
+    {
+        self->items[index] = value;
+        self->length += index - self->length + 1;
+    }
+}
+
+void Int32arrayInit(Int32array *self, int32_t *buffer, int32_t capacity)
+{
+    self->length = 0;
+    self->capacity = capacity;
+    self->items = buffer;
+    memset(self->items, 0, (size_t)capacity * sizeof(int32_t)); //Replace garbage with 0
+    self->push = Int32arrayPush;
+    self->insert = Int32arrayInsert;
+}
 
 int32_t Int32arrayGet (Int32array array, int32_t i)
 {
@@ -50,16 +89,15 @@ int main(void)
 {
     //fr easier in c than python (skull emoji, skull emoji)
     int32_t stack_buf[16];
-    Int32array arr = {
-        .capacity = sizeof(stack_buf) / sizeof(stack_buf[0]),
-        .items =  stack_buf
-    };
+    Int32array arr;
+    Int32arrayInit(&arr, stack_buf, (sizeof(stack_buf) / sizeof(stack_buf[0])));
 
-   int32_t seedVals[] = {1,3,5,9,9,2,3,43,1,3};
-
-    memcpy(arr.items, seedVals, sizeof(seedVals));
-    arr.length = sizeof(seedVals) / sizeof(seedVals[0]);
+    arr.push(&arr, 10);
+    arr.push(&arr, 20);
     
+    printf("%d\n", arr.items[2]);
+    arr.insert(&arr, 9, 16);
+    printf("%d\n", arr.items[2]);
 
     for (int32_t i = 0; i < arr.length; ++i)
     {
