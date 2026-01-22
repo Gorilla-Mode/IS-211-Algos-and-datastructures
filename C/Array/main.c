@@ -4,7 +4,8 @@
 
 typedef struct Int32array Int32array;
 
-struct Int32array {
+struct Int32array
+{
     int32_t length;
     int32_t capacity;
     int32_t *items;
