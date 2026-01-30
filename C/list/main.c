@@ -9,54 +9,76 @@ struct int32List
     int32_t length;
     int32_t capacity;
     int32_t *items;
+    int32_t reallocChuck;
 
-    void (*add)(int32List *self, int32_t value);
+    bool (*add)(int32List *self, int32_t value);
 };
 
-
-
-void int32ListAdd (int32List *self, int32_t value)
+bool int32ListAdd (int32List *self, int32_t value)
 {
-    if (self->length != self->capacity)
+    if (self->length < self->capacity)
     {
         self->items[self->length] = value;
         self->length++;
+        return true;
     }
+
+    int32_t newSize = self->capacity + self->reallocChuck;
+    int32_t *temp = realloc(self->items, sizeof(int32_t) * newSize);
+    if (temp == nullptr)
+    {
+        fprintf(stderr,"Memory allocation failed\n");
+        return false;
+    }
+    self->items = temp;
+
+    self->items[self->length] = value;
+    self->length++;
+    self->capacity = newSize;
+
+    return true;
 }
 
-void int32ListInit(int32List *self, int32_t capacity)
+bool int32ListInit(int32List *self, int32_t Capacity)
 {
     self->add = int32ListAdd;
 
     self->length = 0;
-    self->capacity = capacity;
-    self->items = calloc(capacity, sizeof(int32_t));
-    if (self->items == NULL)
+    self->capacity = Capacity;
+    self->reallocChuck = 25;
+
+    self->items = calloc(Capacity, sizeof(int32_t));
+    if (self->items == nullptr)
     {
         setbuf(stdout, nullptr);
         fprintf(stderr, "Memory not allocated!\n");
-        exit(EXIT_FAILURE);
+        return false;
     }
+
+    return true;
 }
 
 int main(void)
 {
-    printf("hello\n");
     int32List list;
-    int32ListInit(&list, 50);
-
-    list.add(&list, 3);
-    list.add(&list, 2);
-    list.add(&list, 1323);
-    list.add(&list, 1322);
-    list.add(&list, 154334);
-
+    int32ListInit(&list, 4);
     setbuf(stdout, nullptr);
-    printf("List item at index 0: %d\n", list.items[0]);
-    printf("List item at index 0: %d\n", list.items[1]);
-    printf("List item at index 0: %d\n", list.items[4]);
+    printf("Initial Cap: %d\n", list.capacity);
+    list.add(&list, 3), list.add(&list, 2), list.add(&list, 1323);
+
+    if (!list.add(&list, 653))
+    {
+        fprintf(stderr, "Value not added\n");
+    }
+
+    for (int i = 0; i < list.capacity; ++i)
+    {
+        printf("List item at index %d: %d\n", i, list.items[i]);
+    }
+
+    printf("Current Cap: %d\n", list.capacity);
     printf("length: %d\n", list.length);
-    printf("Size: %llu\n", sizeof(list));
+    printf("Size: %llu\n", sizeof(int32_t) * (size_t)list.capacity);
 
     return 0;
 }
