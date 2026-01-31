@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 typedef struct int32List int32List;
 
 struct int32List
@@ -14,7 +15,7 @@ struct int32List
     bool *usedIndex;
 
     bool (*add)(int32List *self, int32_t value);
-    int32_t (*get)(int32List *self, uint32_t index);
+    int32_t (*get)(const int32List *self, uint32_t index);
     bool (*insert)(int32List *self, uint32_t index, int32_t value);
     bool (*fill)(int32List *self, int32_t value);
     bool (*remove)(int32List *self, uint32_t index);
