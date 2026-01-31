@@ -25,28 +25,42 @@ bool int32ListAdd (int32List *self, int32_t value)
     if (self->length < self->capacity)
     {
         self->items[self->length] = value;
+        self->usedIndex[self->length] = true;
         self->length++;
         return true;
     }
+
     int32_t oldCap = self->capacity;
     int32_t newSize = oldCap + self->reallocChuck;
+    size_t newItemsBytes = (size_t)newSize * sizeof(int32_t);
+    size_t newUsedBytes  = (size_t)newSize * sizeof(bool);
 
-
-    int32_t *ItemsTemp = realloc(self->items, sizeof(int32_t) * (size_t)newSize);
-    bool *UsedTemp = realloc(self->usedIndex, sizeof(bool) * (size_t)newSize);
-    if (ItemsTemp == nullptr || UsedTemp == nullptr)
+    int32_t *ItemsTemp = realloc(self->items, newItemsBytes);
+    if (ItemsTemp == nullptr)
     {
         fprintf(stderr,"Memory allocation failed\n");
         return false;
     }
+
+    bool *UsedTemp = realloc(self->usedIndex, newUsedBytes);
+    if (UsedTemp == nullptr)
+    {
+        fprintf(stderr,"Memory allocation failed\n");
+        return false;
+    }
+
     self->usedIndex = UsedTemp;
     self->items = ItemsTemp;
     self->capacity = newSize;
-
-    memset(self->usedIndex + oldCap, false, (size_t)self->capacity * sizeof(bool)); //replace garbage with false
-    memset(self->items + oldCap, 0, (size_t)self->capacity  * sizeof(int32_t)); //replace garbage with 0
+    size_t newCount = newSize - oldCap;
+    if (newCount > 0)
+    {
+        memset(self->usedIndex + oldCap, 0, newCount * sizeof(bool));
+        memset(self->items + oldCap, 0, newCount * sizeof(int32_t));
+    }
 
     self->items[self->length] = value;
+    self->usedIndex[self->length] = true;
     self->length++;
 
     return true;
@@ -129,7 +143,10 @@ int main(void)
     int32ListInit(&list, 4);
     setbuf(stdout, nullptr);
     printf("Initial Cap: %d\n", list.capacity);
-    list.add(&list, 3), list.add(&list, 2), list.add(&list, 1323), list.add(&list, 343),
+    list.add(&list, 3);
+    list.add(&list, 2);
+    list.add(&list, 1323);
+    list.add(&list, 343);
     list.add(&list, 43343);
 
     if (!list.add(&list, 653))
