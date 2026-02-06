@@ -17,8 +17,8 @@ struct int32List
     bool (*add)(int32List *self, int32_t value);
     int32_t (*get)(const int32List *self, uint32_t index);
     bool (*insert)(int32List *self, uint32_t index, int32_t value);
-    bool (*fill)(int32List *self, int32_t value);
-    bool (*remove)(int32List *self, uint32_t index);
+    bool (*fill)(const int32List *self, int32_t value);
+    bool (*remove)(const int32List *self, uint32_t index);
 };
 
 bool int32ListAdd (int32List *self, int32_t value)
@@ -56,7 +56,7 @@ bool int32ListAdd (int32List *self, int32_t value)
     size_t newCount = newSize - oldCap;
     if (newCount > 0)
     {
-        memset(self->usedIndex + oldCap, 0, newCount * sizeof(bool));
+        memset(self->usedIndex + oldCap, false, newCount * sizeof(bool));
         memset(self->items + oldCap, 0, newCount * sizeof(int32_t));
     }
 
@@ -81,6 +81,11 @@ int32_t int32ListGet(const int32List *self, uint32_t index)
             self->length, index);
         return false;
     }
+    if (!self->usedIndex[index])
+    {
+        fprintf(stderr, "ERROR: No item at index %d\n\tIndex of attempted access: %d\n", index, index);
+        return false;
+    }
 
     return self->items[index];
 }
@@ -95,6 +100,7 @@ bool int32ListInsert(int32List *self, uint32_t index, int32_t value)
     }
 
     self->items[index] = value;
+    self->usedIndex[index] = true;
     if (index > self->length)
     {
         self->length += ((int32_t)index - self->length + 1);
@@ -102,13 +108,39 @@ bool int32ListInsert(int32List *self, uint32_t index, int32_t value)
     return true;
 }
 
-bool int32ListFill(int32List *self, int32_t value)
+bool int32ListFill(const int32List *self, int32_t value)
 {
-    return true;
+    for (int i = 0; i < self->capacity; ++i)
+    {
+        if (!self->usedIndex[i])
+        {
+            self->items[i] = value;
+            self->usedIndex[i] = true;
+            return true;
+        }
+    }
+    fprintf(stderr, "ERROR: No empty slots to fill\n\tBounds of list: %d\n", self->capacity);
+    return false;
 }
 
-bool int32ListRemove(int32List *self, uint32_t index)
+bool int32ListRemove(const int32List *self, uint32_t index)
 {
+    if (index >= self->capacity)
+    {
+        fprintf(stderr, "ERROR: Removing out of bounds\n\tBounds of list: %d\n\tIndex of attempted to remove: %d\n",
+            self->capacity, index);
+        return false;
+    }
+
+    if (index >= self->length)
+    {
+        fprintf(stderr, "ERROR: Removing unused values\n\tLength of list: %d\n\tIndex of attempted to remove: %d\n",
+            self->length, index);
+        return false;
+    }
+
+    self->usedIndex[index] = false;
+    self->items[index ] = 0;
     return true;
 }
 
@@ -156,6 +188,9 @@ int main(void)
     }
 
     list.insert(&list,28, 540);
+    list.remove(&list, 2);
+    list.fill(&list, 67);
+    list.fill(&list, 343);
 
     for (int i = 0; i < list.length; ++i)
     {
