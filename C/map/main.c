@@ -94,9 +94,9 @@ int main(void)
     map map;
     mapInit(&map, 10);
 
-    mapAdd(&map, 1, 'a');
-    mapAdd(&map, 2, 'b');
-    mapAdd(&map, 1, 'c');
+    map.add(&map, 1, 'a');
+    map.add(&map, 2, 'b');
+    map.add(&map, 1, 'c');
 
     if (map.add(&map, 3, 'd').wasInserted)
     {
