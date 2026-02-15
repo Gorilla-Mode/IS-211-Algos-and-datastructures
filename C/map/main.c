@@ -32,7 +32,7 @@ mapElement mapAdd(map *self, int32_t key, char value)
         }
     }
 
-    int32_t index;
+    int32_t index = 0;
     mapElement result;
     if (existsAt >= 0)
     {
@@ -45,11 +45,32 @@ mapElement mapAdd(map *self, int32_t key, char value)
     }
 
     index = self->size;
-    self->keys = (int32_t *) realloc(self->keys, sizeof(int32_t) * (self->size + 1));
+
+    size_t newKeyBytes = sizeof(int32_t) * (self->size + 1);
+    int32_t *KeysTemp = realloc(self->keys, newKeyBytes);
+    if (KeysTemp == nullptr)
+    {
+        fprintf(stderr, "Failed to allocate memory for keys\n");
+        result.wasInserted = false;
+        result.key = self->keys[index];
+        result.value = self->values[index];
+        return result;
+    }
+    self->keys = KeysTemp;
     self->size++;
     self->keys[index] = key;
 
-    self->values = (char *) realloc(self->values,self->size);
+    size_t newValueBytes = sizeof(char) * (self->size + 1);
+    char *ValuesTemp = realloc(self->values, newValueBytes);
+    if (ValuesTemp == nullptr)
+    {
+        fprintf(stderr, "Failed to allocate memory for values\n");
+        result.wasInserted = false;
+        result.key = self->keys[index];
+        result.value = self->values[index];
+        return result;
+    }
+    self->values = ValuesTemp;
     self->values[index] = value;
 
     result.key = self->keys[index];
@@ -74,5 +95,17 @@ int main(void)
     mapInit(&map, 10);
 
     mapAdd(&map, 1, 'a');
+    mapAdd(&map, 2, 'b');
+    mapAdd(&map, 1, 'c');
+
+    if (map.add(&map, 3, 'd').wasInserted)
+    {
+        printf("Inserted\n");
+    }
+
+    if (!map.add(&map, 1, 'e').wasInserted)
+    {
+        printf("Not inserted\n");
+    }
     return 0;
 }
