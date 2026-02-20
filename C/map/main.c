@@ -17,10 +17,11 @@ struct map
     char *values;
     int32_t size;
 
-    mapElement (*add)(map *self, int32_t key, char value);
+    mapElement (*add)(map *self, const int32_t key, char value);
+    char (*get)(const map *self, const int32_t key);
 };
 
-mapElement mapAdd(map *self, int32_t key, char value)
+mapElement mapAdd(map *self, const int32_t key, char value)
 {
     int32_t existsAt = -1;
     for (int i = 0; i < self->size; ++i)
@@ -80,6 +81,26 @@ mapElement mapAdd(map *self, int32_t key, char value)
     return result;
 }
 
+char mapGet(const map *self, const int32_t key)
+{
+    int32_t existsAt = -1;
+    for (int i = 0; i < self->size; ++i)
+    {
+        if (key == self->keys[i])
+        {
+            existsAt = i;
+            break;
+        }
+    }
+
+    if (existsAt < 0)
+    {
+        fprintf(stderr, "Error: Key not found\n");
+        return '\0';
+    }
+    return self->values[existsAt];
+}
+
 void mapInit (map *self, int32_t size)
 {
     self->keys = malloc(sizeof(int32_t) * size);
@@ -87,6 +108,7 @@ void mapInit (map *self, int32_t size)
     self->size = size;
 
     self->add = mapAdd;
+    self->get = mapGet;
 }
 
 int main(void)
@@ -107,5 +129,10 @@ int main(void)
     {
         printf("Not inserted\n");
     }
+
+    printf("%c\n", map.get(&map, 1));
+    printf("%c\n", map.get(&map, 2));
+    printf("%c\n", map.get(&map, 3));
+    printf("%c\n", map.get(&map, 12));
     return 0;
 }
