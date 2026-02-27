@@ -19,6 +19,8 @@ struct map
 
     mapElement (*add)(map *self, const int32_t key, char value);
     char (*get)(const map *self, const int32_t key);
+    bool (*exists)(const map *self, const char value);
+    int32_t (*find)(const map *self, const char value);
 };
 
 mapElement mapAdd(map *self, const int32_t key, char value)
@@ -101,6 +103,31 @@ char mapGet(const map *self, const int32_t key)
     return self->values[existsAt];
 }
 
+bool mapExists(const map *self, const char value)
+{
+    for (int i = 0; i < self->size; ++i)
+    {
+        if (value == self->values[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+int32_t mapFind(const map *self, const char value)
+{
+    for (int i = 0; i < self->size; ++i)
+    {
+        if (value == self->values[i])
+        {
+            return self->keys[i];
+        }
+    }
+    fprintf(stderr, "Error: Key not found\n");
+    return -1;
+}
+
 void mapInit (map *self, int32_t size)
 {
     self->keys = malloc(sizeof(int32_t) * size);
@@ -109,6 +136,8 @@ void mapInit (map *self, int32_t size)
 
     self->add = mapAdd;
     self->get = mapGet;
+    self->exists = mapExists;
+    self->find = mapFind;
 }
 
 int main(void)
@@ -134,5 +163,32 @@ int main(void)
     printf("%c\n", map.get(&map, 2));
     printf("%c\n", map.get(&map, 3));
     printf("%c\n", map.get(&map, 12));
+
+    bool exists = map.exists(&map, 'x');
+
+    if (exists)
+    {
+        printf("Exists\n");
+    }
+    else
+    {
+        printf("Does not exist\n");
+    }
+
+    bool exists2 = map.exists(&map, 'a');
+
+    if (exists2)
+    {
+        printf("Exists\n");
+    }
+    else
+    {
+        printf("Does not exist\n");
+    }
+
+
+    int32_t key = map.find(&map, 'a');
+    printf("%d\n", key);
+
     return 0;
 }
