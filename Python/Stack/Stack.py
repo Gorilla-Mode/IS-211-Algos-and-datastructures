@@ -13,6 +13,7 @@ class Stack:
     def pop(self):
         if self.top == -1:
             return
+        top = self.stack[self.top]
         self.stack[self.top] = None
         self.top -= 1
 
