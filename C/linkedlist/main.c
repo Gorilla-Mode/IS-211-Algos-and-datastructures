@@ -24,8 +24,6 @@ void singleLinkedAppend(singleLinked *s, int32_t value)
 
     node->value = value;
     node->next = nullptr;
-    node->append = s->append;
-    node->last = s->last;
 
     if (s->tail == nullptr)
     {
@@ -60,7 +58,6 @@ void singleLinkedInsert(singleLinked *s, int32_t value, int32_t position)
 
     singleLinked *node = malloc(sizeof(*node));
     node->value = value;
-    node->next = s->next;
 
     singleLinked *cur = s;
     for (int i = 0; i < position; i++)
@@ -173,7 +170,18 @@ int main(void)
     }
 
     printf("\nSize: %d\n", singleLinked.size);
-    printf("first: %d\n", singleLinked.last(&singleLinked));
+    printf("Last: %d\n", singleLinked.last(&singleLinked));
+    printf("First: %d\n", singleLinked.first(&singleLinked));
 
+    singleLinked.insert(&singleLinked, 50, singleLinked.size);
+    singleLinked.insert(&singleLinked, 60, singleLinked.size);
+    singleLinked.insert(&singleLinked, 70, singleLinked.size);
+    int32_t *arrayAfter3 = singleLinked.toArray(&singleLinked);
+    printf("\nSize: %d\n", singleLinked.size);
+    printf("Items in list:\n");
+    for (int i = 0; i < singleLinked.size; ++i)
+    {
+        printf("Array item %d: %d\n", i, arrayAfter3[i]);
+    }
     return 0;
 }
